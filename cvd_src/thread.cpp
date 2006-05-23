@@ -2,6 +2,8 @@
 #include <cvd/thread.h>
 #include <time.h>
 
+#include <iostream>
+
 namespace CVD {
 //Static variables
 bool Thread::ourInitializedFlag = false;
@@ -103,7 +105,7 @@ bool Thread::init()
 void* Thread::threadproc(void* param) 
 {
    Thread* thread = (Thread*)param;
-   pthread_setspecific(ourKey, thread);
+   //pthread_setspecific(ourKey, thread);
    thread->myRunningFlag = true;
    if (thread->myRunnable)
      thread->myRunnable->run();
@@ -111,6 +113,7 @@ void* Thread::threadproc(void* param)
      thread->run();
    thread->myRunningFlag = false;
    ourCount--;
+
    return 0;
 }
 
