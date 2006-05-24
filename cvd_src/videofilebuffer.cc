@@ -302,10 +302,10 @@ void* RawVideoFileBuffer::get_frame()
 
 
 	VideoFileFrame<byte> *vfb = NULL;
-	VideoFileFrame<Rgb<byte> > *vffgb = NULL;
+	VideoFileFrame<Rgb<byte> > *vfrgb = NULL;
 	
 	if(is_rgb)
-		vfrgb = new VideoFileFrame<byte>(frame_time, next_frame_rgb);
+		vfrgb = new VideoFileFrame<Rgb<byte> >(frame_time, next_frame_rgb);
 	else
 		vfb = new VideoFileFrame<byte>(frame_time, next_frame);
 	
@@ -344,12 +344,12 @@ void* RawVideoFileBuffer::get_frame()
 template<class C> void delete_frame_or_throw(void* f)
 {
 	VideoFrame<C>* vf = reinterpret_cast<VideoFrame<C>*>(f);
-	VideoFileFrame<C>* vff  = dynamic_cast<VideoFileFrame<C*>(vf);
+	VideoFileFrame<C>* vff  = dynamic_cast<VideoFileFrame<C>*>(vf);
 	
 	if(!vff)
 		throw Exceptions::VideoBuffer::BadPutFrame();
 	else
-		delete vff;
+	        vff->delete_self();
 }
 
 //
