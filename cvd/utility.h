@@ -122,7 +122,7 @@ ImageRef())
   template <class A, class B> inline void assign_multiple(const A* a, const A& c,  B* out, unsigned int count)
   {
       while (count--)
-	  *(out++) = *(a++) * c;
+	  *(out++) = static_cast<B>(*(a++) * c);
   }
 
   /// Compute sum(a_i*b_i)
