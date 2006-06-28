@@ -44,6 +44,12 @@ int main()
 
 	SubImage<byte> s = in.sub_image(ImageRef(10,10), ImageRef(100,100));
 
+	VideoDisplay e(0,0,90,90);
+	glDrawPixels(s);
+	cin.get();
+
+	d.make_current();
+
 	clear(s.begin(), s.end());
 
 	glDrawPixels(in);
@@ -53,7 +59,9 @@ int main()
 	
 	glDrawPixels(in);
 	glFlush();
-	
+
+	cin.get();
+
 	s = in;
 
 

@@ -395,6 +395,12 @@ template<class T> class SubImage
 			return my_size;
 		}
 
+		/// What is the row stride of the image?
+		inline int row_stride() const
+		{
+			return my_stride;
+		}
+
 		/// What is the total number of elements in the image (i.e. <code>size().x * size().y</code>), including padding
 		inline int totalsize() const
 		{
