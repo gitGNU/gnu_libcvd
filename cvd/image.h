@@ -128,6 +128,7 @@
 #include <cvd/image_ref.h>
 #include <cvd/exceptions.h>
 #include <string>
+#include <iterator>
 #include <cvd/internal/aligned_mem.h>
 
 namespace CVD {
@@ -248,6 +249,14 @@ template<class T> class ConstSubImageIterator
 		bool operator<(const ConstSubImageIteratorEnd<T>&) const { return end != NULL; }
 		bool operator<(const SubImageIteratorEnd<T>&) const { return end != NULL; }
 
+		
+		//Make it look like a standard iterator
+		typedef std::forward_iterator_tag iterator_category;
+		typedef T value_type;
+		typedef ptrdiff_t difference_type;
+		typedef const T* pointer;
+		typedef const T& reference;
+
 
 
 		ConstSubImageIterator()
@@ -281,6 +290,9 @@ template<class T> class SubImageIterator: public ConstSubImageIterator<T>
 		SubImageIterator(T* end) 
 		:ConstSubImageIteratorEnd<T>::ptr(end)
 		{ }
+
+		typedef T* pointer;
+		typedef T& reference;
 
 		T* operator->() { return ConstSubImageIteratorEnd<T>::ptr; }
 		T& operator*() { return *ConstSubImageIteratorEnd<T>::ptr;}
