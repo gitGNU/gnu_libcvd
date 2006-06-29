@@ -209,86 +209,9 @@ namespace ImageUtil
 
 template<class T> class SubImageIteratorEnd;
 template<class T> class SubImage;
-
 template<class T> class ConstSubImageIteratorEnd;
 template<class T> class ConstSubImage;
 
-template<class T> class SubImageIterator
-{
-	public:
-		void operator++()
-		{
-			ptr++;
-			if(ptr == row_end)
-			{
-				ptr += row_increment;
-				row_end += total_width;
-
-				if(ptr >= end)
-					end = NULL;
-			}
-		}
-
-		void operator++(int)
-		{
-			operator++();
-		}
-	
-		T* operator->() { return ptr; }
-		const T* operator->() const { return ptr; }
-
-		T& operator*(){ return *ptr;}
-		const T& operator*() const { return *ptr;}
-
-		bool operator<(const SubImageIterator& s) const { return ptr < s.ptr; }
-		bool operator==(const SubImageIterator& s) const { return ptr == s.ptr; }
-		bool operator!=(const SubImageIterator& s) const { return ptr != s.ptr; }
-
-
-		bool operator!=(const SubImageIteratorEnd<T>& s) const
-		{
-			return end != NULL;
-		}
-
-		bool operator<(const SubImageIteratorEnd<T>& s) const
-		{
-			//It's illegal to iterate _past_ end(), so < is equivalent to !=
-			return end != NULL;
-		}
-
-		SubImageIterator()
-		{}
-
-		SubImageIterator(T* start, int image_width, int row_stride, T* off_end)
-		:ptr(start),
-		 row_end(start + image_width), 
-		 end(off_end), 
-		 row_increment(row_stride-image_width), 
-		 total_width(row_stride)
-		{ }
-
-		SubImageIterator(T* end) :ptr(end){ }
-
-	private:
-		T* ptr, *row_end, *end;
-		int row_increment, total_width;
-};
-
-
-template<class T> class SubImageIteratorEnd
-{
-	public:
-		SubImageIteratorEnd(SubImage<T>* p)
-		:i(p){}
-
-		operator SubImageIterator<T>()
-		{
-			return i->end();
-		}
-
-	private:
-		SubImage<T>* i;
-};
 
 template<class T> class ConstSubImageIterator
 {
@@ -319,40 +242,70 @@ template<class T> class ConstSubImageIterator
 		bool operator!=(const ConstSubImageIterator& s) const { return ptr != s.ptr; }
 
 
-		bool operator!=(const ConstSubImageIteratorEnd<T>& s) const
-		{
-			return end != NULL;
-		}
+		bool operator!=(const ConstSubImageIteratorEnd<T>&) const { return end != NULL; }
+		bool operator!=(const SubImageIteratorEnd<T>&) const { return end != NULL; }
+		//It's illegal to iterate _past_ end(), so < is equivalent to !=
+		bool operator<(const ConstSubImageIteratorEnd<T>&) const { return end != NULL; }
+		bool operator<(const SubImageIteratorEnd<T>&) const { return end != NULL; }
 
-		bool operator<(const ConstSubImageIteratorEnd<T>& s) const
-		{
-			//It's illegal to iterate _past_ end(), so < is equivalent to !=
-			return end != NULL;
-		}
+
 
 		ConstSubImageIterator()
 		{}
 
 		ConstSubImageIterator(const T* start, int image_width, int row_stride, const T* off_end)
-		:ptr(start),
+		:ptr(const_cast<T*>(start)),
 		 row_end(start + image_width), 
 		 end(off_end), 
 		 row_increment(row_stride-image_width), 
 		 total_width(row_stride)
 		{ }
 
-		ConstSubImageIterator(const T* end) :ptr(end){ }
+		ConstSubImageIterator(const T* end) 
+		:ptr(const_cast<T*>(end))
+		{ }
+
+	protected:
+		T* ptr;
+		const T *row_end, *end;
+		int row_increment, total_width;
+};
+
+template<class T> class SubImageIterator: public ConstSubImageIterator<T>
+{
+	public:
+		SubImageIterator(T* start, int image_width, int row_stride, const T* off_end)
+		:ConstSubImageIterator<T>(start, image_width, row_stride, off_end)
+		{}
+		
+		SubImageIterator(T* end) 
+		:ConstSubImageIteratorEnd<T>::ptr(end)
+		{ }
+
+		T* operator->() { return ConstSubImageIteratorEnd<T>::ptr; }
+		T& operator*() { return *ConstSubImageIteratorEnd<T>::ptr;}
+};
+
+template<class T> class SubImageIteratorEnd
+{
+	public:
+		SubImageIteratorEnd(SubImage<T>* p)
+		:i(p){}
+
+		operator SubImageIterator<T>()
+		{
+			return i->end();
+		}
 
 	private:
-		const T* ptr, *row_end, *end;
-		int row_increment, total_width;
+		SubImage<T>* i;
 };
 
 
 template<class T> class ConstSubImageIteratorEnd
 {
 	public:
-		ConstSubImageIteratorEnd(SubImage<T>* p)
+		ConstSubImageIteratorEnd(const SubImage<T>* p)
 		:i(p){}
 
 		operator ConstSubImageIterator<T>()
