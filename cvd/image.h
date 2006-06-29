@@ -210,6 +210,9 @@ namespace ImageUtil
 template<class T> class SubImageIteratorEnd;
 template<class T> class SubImage;
 
+template<class T> class ConstSubImageIteratorEnd;
+template<class T> class ConstSubImage;
+
 template<class T> class SubImageIterator
 {
 	public:
@@ -285,6 +288,80 @@ template<class T> class SubImageIteratorEnd
 
 	private:
 		SubImage<T>* i;
+};
+
+template<class T> class ConstSubImageIterator
+{
+	public:
+		void operator++()
+		{
+			ptr++;
+			if(ptr == row_end)
+			{
+				ptr += row_increment;
+				row_end += total_width;
+
+				if(ptr >= end)
+					end = NULL;
+			}
+		}
+
+		void operator++(int)
+		{
+			operator++();
+		}
+	
+		const T* operator->() const { return ptr; }
+		const T& operator*() const { return *ptr;}
+
+		bool operator<(const ConstSubImageIterator& s) const { return ptr < s.ptr; }
+		bool operator==(const ConstSubImageIterator& s) const { return ptr == s.ptr; }
+		bool operator!=(const ConstSubImageIterator& s) const { return ptr != s.ptr; }
+
+
+		bool operator!=(const ConstSubImageIteratorEnd<T>& s) const
+		{
+			return end != NULL;
+		}
+
+		bool operator<(const ConstSubImageIteratorEnd<T>& s) const
+		{
+			//It's illegal to iterate _past_ end(), so < is equivalent to !=
+			return end != NULL;
+		}
+
+		ConstSubImageIterator()
+		{}
+
+		ConstSubImageIterator(const T* start, int image_width, int row_stride, const T* off_end)
+		:ptr(start),
+		 row_end(start + image_width), 
+		 end(off_end), 
+		 row_increment(row_stride-image_width), 
+		 total_width(row_stride)
+		{ }
+
+		ConstSubImageIterator(const T* end) :ptr(end){ }
+
+	private:
+		const T* ptr, *row_end, *end;
+		int row_increment, total_width;
+};
+
+
+template<class T> class ConstSubImageIteratorEnd
+{
+	public:
+		ConstSubImageIteratorEnd(SubImage<T>* p)
+		:i(p){}
+
+		operator ConstSubImageIterator<T>()
+		{
+			return i->end();
+		}
+
+	private:
+		const SubImage<T>* i;
 };
 
 
@@ -369,17 +446,28 @@ template<class T> class SubImage
 		}
 
 		typedef SubImageIterator<T> iterator;
+		typedef ConstSubImageIterator<T> const_iterator;
 		
 		/// Returns an iterator referencing the first (top-left) pixel in the image
-		inline SubImageIterator<T> begin()
+		inline iterator begin()
 		{
 			return SubImageIterator<T>(data(), size().x, my_stride, operator[](my_size.y));
 		}
+		/// Returns a const iterator referencing the first (top-left) pixel in the image
+		inline const_iterator begin() const
+		{
+			return ConstSubImageIterator<T>(data(), size().x, my_stride, operator[](my_size.y));
+		}
 
 		/// Returns an iterator pointing to one past the end of the image
-		inline SubImageIterator<T> end()
+		inline iterator end()
 		{
 			return SubImageIterator<T>(operator[](my_size.y));
+		}
+		/// Returns a const iterator pointing to one past the end of the image
+		inline const_iterator end() const
+		{
+			return ConstSubImageIterator<T>(operator[](my_size.y));
 		}
 
 		/// Returns an object corresponding to end(), which should eliminate a test.
@@ -387,6 +475,15 @@ template<class T> class SubImage
 		{
 			return SubImageIteratorEnd<T>(this);
 		}
+		/// Returns an object corresponding to end() const, which should eliminate a test.
+		inline ConstSubImageIteratorEnd<T> fastend() const
+		{
+			return ConstSubImageIteratorEnd<T>(this);
+		}
+
+
+
+
 
 
 		/// What is the size of this image?
@@ -573,6 +670,16 @@ class Image: public BasicImage<T>
 
 			*this = tmp;
 			
+			std::copy(copy.begin(), copy.end(), this->begin());
+		}
+		///Make a (new) copy of the image, also making a copy of the data
+		///@param copy The image to copy
+		void copy_from(const SubImage<T>& copy)
+		{
+			Image<T> tmp(copy.size());
+			*this = tmp;
+			
+			// FIXME: this is currently slow. Use fastend().
 			std::copy(copy.begin(), copy.end(), this->begin());
 		}
 
