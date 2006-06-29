@@ -297,7 +297,7 @@ template<class T> class SubImage
         inline const T* operator[](int row) const
         {
             CVD_IMAGE_ASSERT(in_image(ImageRef(0,row)), ImageError::AccessOutsideImage);
-            return my_data+row*my_size.x;
+            return my_data+row*my_stride;
         }
 
 		/// Given a pointer, this returns the image position as an ImageRef
