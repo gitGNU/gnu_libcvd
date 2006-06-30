@@ -200,6 +200,9 @@ template<class T> class SubImageIterator: public ConstSubImageIterator<T>
 		:ConstSubImageIteratorEnd<T>::ptr(end)
 		{ }
 
+		SubImageIterator()
+		{}
+
 		typedef T* pointer;
 		typedef T& reference;
 
