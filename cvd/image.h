@@ -37,6 +37,7 @@
 #include <cvd/image_ref.h>
 #include <cvd/exceptions.h>
 #include <string>
+#include <utility>
 #include <iterator>
 #include <cvd/internal/aligned_mem.h>
 
@@ -528,7 +529,19 @@ template<class T> class BasicImage: public SubImage<T>
 template<class T> 
 class Image: public BasicImage<T>
 {
+	private:
+		struct CopyPlaceHolder
+		{
+			const Image* im;
+		};
+
 	public:
+		static std::pair<ImageRef, T> CreateNew(const ImageRef& i, const T& v)
+		{
+			return make_pair(i, v);
+		}
+
+
 		///Copy constructor. This does not copy the data, it just creates a new
 		///reference to the image data
 		///@param copy The image to copy
@@ -536,6 +549,35 @@ class Image: public BasicImage<T>
 			BasicImage<T>(copy)
 		{
 			dup_from(&copy);
+		}
+
+
+		/**CopyFrom" constructor. If constructed from this, it creates
+		   a new copy of the data. This can only be used in conjunction with 
+		   This can be used in conjunction with containers. The following code
+		   @code	
+		     Image<float> blank(ImageRef(100,100));
+			 blank.fill(0);
+
+			 vector<Image<float> > images(10, blank.copy_from_me());
+		   @endcode
+		   Creates 10 blank images. Without the the @ref copy_from_me, all the images
+		   would refer to the same data.
+		   
+		   @ref copy_from_me
+		   @param c The (placeholder) image to copy from.
+		**/
+		Image(const CopyPlaceHolder& c)
+		{
+			dup_from(c.im);
+		}
+		
+		///This returns a place holder from which an image can be constructed.
+		///On construction, a new copy of the data is made.
+		CopyPlaceHolder copy_from_me()
+		{	
+			CopyPlaceHolder c = {this};
+			return c;
 		}
 
 
@@ -549,6 +591,10 @@ class Image: public BasicImage<T>
 			
 			std::copy(copy.begin(), copy.end(), this->begin());
 		}
+
+
+
+
 		///Make a (new) copy of the image, also making a copy of the data
 		///@param copy The image to copy
 		void copy_from(const SubImage<T>& copy)
@@ -596,6 +642,33 @@ class Image: public BasicImage<T>
  			this->my_stride = size.x;
 			this->my_data = Internal::aligned_mem<T,16>::alloc(this->totalsize());
 		}
+
+		///Create a filled image of a given size
+		///@param size The size of image to create
+		///@param val  The value to fill the image with
+		Image(const ImageRef& size, const T& val)
+		{
+			Image<T> tmp(size);
+			tmp.fill(val);
+			dup_from(&tmp);
+		}
+
+
+		///Create a filled image of a given size
+		///This function allows a filled image to be constructed from a single value.
+		///This is useful for the following code:
+		/// @code
+		///	vector<Image<byte> > images(10, Image<byte>::CreateNew(ImageRef(100,100), 255));
+		/// @endcode
+		/// See also @ref CreateNew, which is a synonym for make_pair
+		///@param im The size and fill for the image to be created
+		Image(const std::pair<ImageRef, T>& im)
+		{
+			Image<T> tmp(im.first);
+			tmp.fill(im.second);
+			dup_from(&tmp);
+		}
+
 		
 		///Resize the image (destroying the data). The image is resized even if the new size is the same as the old one.
 		///@param size The new size of the image
@@ -613,6 +686,8 @@ class Image: public BasicImage<T>
 
 		
 	private:
+
+
 		int* num_copies;			//Reference count.
 
 		inline void remove()		//Get rid of a reference to the data
