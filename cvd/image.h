@@ -206,8 +206,8 @@ template<class T> class SubImageIterator: public ConstSubImageIterator<T>
 		typedef T* pointer;
 		typedef T& reference;
 
-		T* operator->() { return ConstSubImageIteratorEnd<T>::ptr; }
-		T& operator*() { return *ConstSubImageIteratorEnd<T>::ptr;}
+		T* operator->() { return ConstSubImageIterator<T>::ptr; }
+		T& operator*() { return *ConstSubImageIterator<T>::ptr;}
 };
 
 template<class T> class SubImageIteratorEnd
