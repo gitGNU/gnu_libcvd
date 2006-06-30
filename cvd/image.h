@@ -536,12 +536,6 @@ class Image: public BasicImage<T>
 		};
 
 	public:
-		static std::pair<ImageRef, T> CreateNew(const ImageRef& i, const T& v)
-		{
-			return make_pair(i, v);
-		}
-
-
 		///Copy constructor. This does not copy the data, it just creates a new
 		///reference to the image data
 		///@param copy The image to copy
