@@ -509,6 +509,72 @@ template<class T> class BasicImage: public SubImage<T>
 };
 
 
+/** An input iterator which just returns N copies of the same
+    value over and over again. This can be used for construction 
+    of containers of images. For intstance the code:
+	@code
+	vector<Image<float> > foo(3, ImageRef(10,10));
+	@endcode
+	All elements of <code>foo</code>  point to the same 10x10 image, which is
+	probably not the desired behaviour. The desired behaviour can be obtained with 
+	the ImageCreationIterator:
+	@code
+	ImageCreationIterator<ImageRef> begin(10,10), end(3);
+	vector<Image<float> > foo(begin, end);
+	@endcode
+	In this case, <code>foo</code> contains 3 distinct images. 
+	
+	See also
+	  - @ref CreateImagesBegin
+	  - @ref CreateImagesEnd
+	  - @ref Image<T>::Image(ImageRef)
+	  - @ref Image<T>::Image(std::pair<ImageRef, T> ) 
+	  - @ref Image<T>::copy_from_me()
+**/
+ 
+template<class T> class ImageCreationIterator: public std::iterator<std::input_iterator_tag, T, ptrdiff_t>
+{
+	public:
+		void operator++(int) { num++; }
+		void operator++() { num++; }
+		bool operator==(const ImageCreationIterator& i){return num == i.num;}
+		bool operator!=(const ImageCreationIterator& i){return num != i.num;}
+		
+		const T& operator*() { return *construct_from_me; }
+		
+		ImageCreationIterator(const T& data)
+		:construct_from_me(&data),num(0){}
+
+		ImageCreationIterator(int i)
+		:construct_from_me(0),num(i){}
+
+	private:
+		const T* construct_from_me;
+		int num;
+};
+
+
+/// Shortcut function for creating an iterator from a bit of data..
+/// @param from_me Data to construct from
+template<class C> inline ImageCreationIterator<C> CreateImagesBegin(const C& from_me)
+{
+	return ImageCreationIterator<C>(from_me);
+}
+/// Shortcut to create an end iterator.
+/// The first parameter is used to get the type correct.
+/// @param i Number of copies to make
+template<class C> inline ImageCreationIterator<C> CreateImagesEnd(const C&, int i)
+{
+	return ImageCreationIterator<C>(i);
+}
+
+/// Shortcut to create an end iterator.
+/// @param i Number of copies to make
+template<class C> inline ImageCreationIterator<C> CreateImagesEnd(int i)
+{
+	return ImageCreationIterator<C>(i);
+}
+
 /// A full image which manages its own data.
 /// @param T The pixel type for this image. Typically either
 /// <code>CVD::byte</code> or <code>CVD::Rgb<CVD::byte> ></code> are used,
@@ -547,23 +613,14 @@ class Image: public BasicImage<T>
 
 
 		/**CopyFrom" constructor. If constructed from this, it creates
-		   a new copy of the data. This can only be used in conjunction with 
-		   This can be used in conjunction with containers. The following code
-		   @code	
-		     Image<float> blank(ImageRef(100,100));
-			 blank.fill(0);
-
-			 vector<Image<float> > images(10, blank.copy_from_me());
-		   @endcode
-		   Creates 10 blank images. Without the the @ref copy_from_me, all the images
-		   would refer to the same data.
-		   
+		   a new copy of the data.  This provides symmetry with @copy_from
 		   @ref copy_from_me
 		   @param c The (placeholder) image to copy from.
 		**/
 		Image(const CopyPlaceHolder& c)
 		{
-			dup_from(c.im);
+			dup_from(NULL);
+			copy_from(*(c.im));
 		}
 		
 		///This returns a place holder from which an image can be constructed.
