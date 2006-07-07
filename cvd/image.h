@@ -625,7 +625,7 @@ class Image: public BasicImage<T>
 		
 		///This returns a place holder from which an image can be constructed.
 		///On construction, a new copy of the data is made.
-		CopyPlaceHolder copy_from_me()
+		CopyPlaceHolder copy_from_me() const
 		{	
 			CopyPlaceHolder c = {this};
 			return c;
