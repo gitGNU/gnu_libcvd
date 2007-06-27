@@ -48,10 +48,10 @@ namespace CVD
 	@param im The image used to generate the FAST features
 	@param corners The FAST features previously detected (e.g. by calling fast_corner_detect())
 	@param  barrier The barrier used to calculate the score, which should be the same as that passed to fast_corner_detect()
-	@param nonmax_corners Vector to be filled with the new list of non-maximally-suppressed corners
+	@param max_corners Vector to be filled with the new list of locally maximal corners.
 	@ingroup  gVision
 	*/
-	void fast_nonmax( const BasicImage<byte>& im, const std::vector<ImageRef>& corners, int barrier, std::vector<ImageRef>& nonmax_corners);
+	void fast_nonmax( const BasicImage<byte>& im, const std::vector<ImageRef>& corners, int barrier, std::vector<ImageRef>& max_corners);
 
 	/** Perform non-maximal suppression on a set of FAST features, also returning
 	the score for each remaining corner. This function cleans up areas where
@@ -62,14 +62,14 @@ namespace CVD
 	@param im The image used to generate the FAST features
 	@param corners The FAST features previously detected (e.g. by calling fast_corner_detect())
 	@param barrier The barrier used to calculate the score, which should be the same as that passed to fast_corner_detect()
-	@param nonmax_corners Vector to be filled with the new list of
-	       non-maximally-suppressed corners, and their scores.
+	@param max_corners Vector to be filled with the new list of
+	       locally maximal corners, and their scores.
      	   <code>non_maxcorners[i].first</code> gives the location and 
 	       <code>non_maxcorners[i].second</code> gives the score (higher is better).
 	
 	@ingroup  gVision
 	*/
-	void fast_nonmax_with_scores( const BasicImage<byte>& im, const std::vector<ImageRef>& corners, int barrier, std::vector<std::pair<ImageRef,int> >& nonmax_corners);
+	void fast_nonmax_with_scores( const BasicImage<byte>& im, const std::vector<ImageRef>& corners, int barrier, std::vector<std::pair<ImageRef,int> >& max_corners);
 
 	/** Return the score for the corner as used by fast_nonmax
 		Note that this is not the same score as used in @ref fast_score .

@@ -1,4 +1,5 @@
 #include <cvd/image_ref.h>
+#include <cvd/nonmax_suppression.h>
 #include <vector>
 
 using namespace std;

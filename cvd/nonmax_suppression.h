@@ -2,6 +2,7 @@
 #define CVD_NONMAX_SUPPRESSION_H
 
 #include <vector>
+#include <utility>
 #include <cvd/image_ref.h>
 
 namespace CVD
@@ -13,7 +14,7 @@ namespace CVD
 	@param max_corners The locally maximal corners.
 	@ingroup gVision
 	*/
-	void nonmax_suppression(const vector<ImageRef>& corners, const vector<int>& scores, vector<ImageRef>& nmax_corners);
+	void nonmax_suppression(const std::vector<ImageRef>& corners, const std::vector<int>& scores, std::vector<ImageRef>& nmax_corners);
 
 
 	/**Perform nonmaximal suppression on a set of features.
@@ -23,6 +24,8 @@ namespace CVD
 	@param max_corners The locally maximal corners, and their scores.
 	@ingroup gVision
 	*/
-	void nonmax_suppression_with_scores(const vector<ImageRef>& corners, const vector<int>& socres, vector<pair<ImageRef,int> >& max_corners);
+	void nonmax_suppression_with_scores(const std::vector<ImageRef>& corners, const std::vector<int>& socres, std::vector<std::pair<ImageRef,int> >& max_corners);
 
 }
+
+#endif
