@@ -129,7 +129,7 @@ namespace CVD
 	}
     }
 
-    void faster_corner_detect_12(const BasicImage<byte>& I, std::vector<ImageRef>& corners, int barrier)
+    void fast_corner_detect_12(const BasicImage<byte>& I, std::vector<ImageRef>& corners, int barrier)
     {
 	if (I.size().x < 22) {
 	    fast_corner_detect_12(I,corners,barrier);
@@ -297,7 +297,7 @@ namespace CVD
 	}
     }
 
-    void faster_corner_detect_10(const BasicImage<byte>& I, std::vector<ImageRef>& corners, int barrier)
+    void fast_corner_detect_10(const BasicImage<byte>& I, std::vector<ImageRef>& corners, int barrier)
     {
 	if (I.size().x < 22) {
 	    fast_corner_detect_10(I,corners,barrier);
@@ -518,7 +518,7 @@ namespace CVD
 	}
     }
 
-    void faster_corner_detect_9(const BasicImage<byte>& I, std::vector<ImageRef>& corners, int barrier)
+    void fast_corner_detect_9(const BasicImage<byte>& I, std::vector<ImageRef>& corners, int barrier)
     {
 	if (I.size().x < 22) {
 	    fast_corner_detect_9(I,corners,barrier);
