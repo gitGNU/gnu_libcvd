@@ -9,12 +9,13 @@ using namespace std;
 #if (CVD_HAVE_EMMINTRIN && CVD_HAVE_SSE2)
 #include <emmintrin.h>
 
+#include "cvd_src/fast/prototypes.h"
+
 namespace CVD
 {
-
-    #include <cvd_src/corner_9.h>    
-    #include <cvd_src/corner_10.h>    
-    #include <cvd_src/corner_12.h>    
+    #include "cvd_src/corner_9.h"    
+    #include "cvd_src/corner_10.h"    
+    #include "cvd_src/corner_12.h"    
 
     struct Less { template <class T1, class T2> static bool eval(const T1 a, const T2 b) { return a < b; }};
     struct Greater { template <class T1, class T2> static bool eval(const T1 a, const T2 b) { return b < a; }};
@@ -132,7 +133,7 @@ namespace CVD
     void fast_corner_detect_12(const BasicImage<byte>& I, std::vector<ImageRef>& corners, int barrier)
     {
 	if (I.size().x < 22) {
-	    fast_corner_detect_12(I,corners,barrier);
+	    fast_corner_detect_plain_12(I,corners,barrier);
 	    return;
 	} else if (I.size().x < 22 || I.size().y < 7)
 	    return;
@@ -300,7 +301,7 @@ namespace CVD
     void fast_corner_detect_10(const BasicImage<byte>& I, std::vector<ImageRef>& corners, int barrier)
     {
 	if (I.size().x < 22) {
-	    fast_corner_detect_10(I,corners,barrier);
+	    fast_corner_detect_plain_10(I,corners,barrier);
 	    return;
 	} else if (I.size().x < 22 || I.size().y < 7)
 	    return;
@@ -521,7 +522,7 @@ namespace CVD
     void fast_corner_detect_9(const BasicImage<byte>& I, std::vector<ImageRef>& corners, int barrier)
     {
 	if (I.size().x < 22) {
-	    fast_corner_detect_9(I,corners,barrier);
+	    fast_corner_detect_plain_9(I,corners,barrier);
 	    return;
 	} else if (I.size().x < 22 || I.size().y < 7)
 	    return;

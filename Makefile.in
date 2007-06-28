@@ -101,11 +101,24 @@ CVD_OBJS=   cvd_src/cvd_timer.o                             \
 			cvd_src/fast_corner.o                           \
 			cvd_src/convolution.o                           \
 			cvd_src/nonmax_suppression.o                    \
-			cvd_src/fast/7_@fast_pointers@_@fast_force@.o   \
-			cvd_src/fast/8_@fast_pointers@_@fast_force@.o   \
-			cvd_src/fast/11_@fast_pointers@_@fast_force@.o  \
-			cvd_src/timeddiskbuffer.o    \
-			cvd_src/videosource.o
+			cvd_src/timeddiskbuffer.o                       \
+			cvd_src/videosource.o                           \
+			cvd_src/fast/fast_7_detect.o                    \
+			cvd_src/fast/fast_7_score.o                     \
+			cvd_src/fast/fast_8_detect.o                    \
+			cvd_src/fast/fast_8_score.o                     \
+			cvd_src/fast/fast_9_detect.o                    \
+			cvd_src/fast/fast_9_score.o                     \
+			cvd_src/fast/fast_10_detect.o                   \
+			cvd_src/fast/fast_10_score.o                    \
+			cvd_src/fast/fast_11_detect.o                   \
+			cvd_src/fast/fast_11_score.o                    \
+			cvd_src/fast/fast_12_detect.o                   \
+			cvd_src/fast/fast_12_score.o                    \
+
+			#cvd_src/fast/7_@fast_pointers@_@fast_force@.o   \
+			#cvd_src/fast/8_@fast_pointers@_@fast_force@.o   \
+			#cvd_src/fast/11_@fast_pointers@_@fast_force@.o  \
 ################################################################################
 #
 # Stuff requiring TooN
@@ -218,10 +231,7 @@ endif
 ifeq (@have_sse2@,yes)
 	CVD_OBJS+=cvd_src/faster_corner.o
 else
-	CVD_OBJS+=\
-			cvd_src/fast/9_@fast_pointers@_@fast_force@.o   \
-			cvd_src/fast/10_@fast_pointers@_@fast_force@.o  \
-			cvd_src/fast/12_@fast_pointers@_@fast_force@.o  
+	CVD_OBJS+=cvd_src/slower_corner.o
 endif
 
 

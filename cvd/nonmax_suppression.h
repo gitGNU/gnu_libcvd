@@ -7,7 +7,7 @@
 
 namespace CVD
 {
-	/**Perform nonmaximal suppression on a set of features.
+	/**Perform nonmaximal suppression on a set of features, in a 3 by 3 window.
 
 	@param corners The corner locations
 	@param scores  The corners' scores
@@ -17,7 +17,7 @@ namespace CVD
 	void nonmax_suppression(const std::vector<ImageRef>& corners, const std::vector<int>& scores, std::vector<ImageRef>& nmax_corners);
 
 
-	/**Perform nonmaximal suppression on a set of features.
+	/**Perform nonmaximal suppression on a set of features, in a 3 by 3 window.
 
 	@param corners The corner locations
 	@param scores  The corners' scores
