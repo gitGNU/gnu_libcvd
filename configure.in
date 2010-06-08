@@ -597,7 +597,7 @@ CHECK_FOR_OPTION(videodisplay,[
 
 	if test "$host_vendor" == apple
 	then
-		APPEND(LIBS, [-L$x_libraries -lX11 -lXext -framework OpenGL])
+		APPEND(LIBS, [-lX11 -lXext -framework OpenGL -L/usr/X11R6/lib -lGL])
 		AC_CHECK_LIB(X11,glDrawPixels, [], [a=1])
 		AC_CHECK_HEADERS(GL/glu.h, [], [a=1])
 		AC_CHECK_LIB(X11,gluGetString, [], [a=1])

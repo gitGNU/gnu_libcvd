@@ -8341,7 +8341,7 @@ fi
 
 	if test "$host_vendor" == apple
 	then
-		LIBS="$LIBS -L$x_libraries -lX11 -lXext -framework OpenGL"
+		LIBS="$LIBS -lX11 -lXext -framework OpenGL -L/usr/X11R6/lib -lGL"
 
 { $as_echo "$as_me:$LINENO: checking for glDrawPixels in -lX11" >&5
 $as_echo_n "checking for glDrawPixels in -lX11... " >&6; }
