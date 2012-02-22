@@ -15,6 +15,145 @@ namespace TooN{
 		///The function input starts from 1.
 		///@param f Functor to extrapolate to zero.
 		///@ingroup gInternal
+		template<class F, class Precision, int Size> std::pair<Precision, Precision> extrapolate_to_zero_array(F& f)
+		{
+			using std::isfinite;
+			using std::max;
+			using std::isnan;
+			//Use points at c^0, c^-1, ... to extrapolate towards zero.
+			const Precision c = 1.1, t = 2;
+
+			static const int Npts = 400;
+
+			const int size=f.size();
+
+			/* Neville's table is:	
+			x_0      y_0    P_0                                 
+								  P_{01}                        
+			x_1      y_1    P_1            P_{012}              
+								  P_{12}             P_{0123}   
+			x_2      y_2    P_2            P_{123}              
+								  P_{23}                        
+			x_3      y_3    P_3   
+
+			In Matrix form, this is rearranged as:
+			
+			
+			x_0      y_0    P_0                                 
+														  
+			x_1      y_1    P_1   P_{01}                 
+											   
+			x_2      y_2    P_2   P_{12}  P_{012}               
+																	   
+			x_3      y_3    P_3   P_{23}  P_{123} P_{0123} 
+
+			This is rewritten further as:
+
+				  |                  0      1      2       3
+			 _____|___________________________________________________	
+			  0   | x_0      y_0    P^00                                
+				  | 	                                          
+			  1   | x_1      y_1    P^10  P^11                   
+				  | 	                               
+			  2   | x_2      y_2    P^10  P^21    P^22                  
+				  | 	                                                       
+			  3   | x_3      y_3    P^10  P^31    P^23    P^33     
+
+			So, P^ij == P_{j-i...j}
+
+			Finally, only the current and previous row are required. This reduces
+			the memory cost from quadratic to linear.  The naming scheme is:
+
+			P[i][j]    -> P_i[j]
+			P[i-1][j]  -> P_i_1[j]
+			*/
+
+			vector<vector<Precision> > P_i(vetctor<Precision>(1), size), P_i_1;
+			
+			vector<Precision> best_err(size, HUGE_VAL);
+			vector<Precision> best_point(size, HUGE_VAL);
+
+			//The first tranche of points might be bad.
+			//Don't quit while no good points have ever happened.
+			vector<bool> ever_ok(size, 0);
+
+			//Compute f(x) as x goes from 1 towards zero and extrapolate to 0
+			Precision x=1;
+			for(int i=0; i < Npts; i++)
+			{
+				swap(P_i, P_i_1);
+				
+				Vector<Size> ff = f(x);
+
+				for(unsigned int n=0; n < P_i.size(); n++)
+				{
+					P_i[n].resize(i+2);
+					P_i[n][0] = f[n];
+				}
+
+				x /= c;
+				
+				//Compute the extrapolations
+				//cj id c^j
+				Precision cj = 1;
+				vector<bool> better(size, 0); //Did we get better?
+
+				for(int n=0; n < size; n++)
+					for(int j=1; j <= i; j++)
+					{
+						cj *= c;
+						//We have (from above) n = i and k = n - j
+						//n-k = i - (n - j) = i - i + j = j
+						//Therefore c^(n-k) is just c^j
+
+						P_i[n][j] = (cj * P_i[n][j-1] - P_i_1[n][j-1]) / (cj - 1);
+
+						if(isfinite(P_i[j]))
+							ever_ok = 1;
+
+						//Compute the difference between the current point (high order)
+						//and the corresponding lower order point at the current step size
+						Precision err1 = abs(P_i[n][j] - P_i[n][j-1]);
+
+						//Compute the difference between two consecutive points at the
+						//corresponding lower order point at the larger stepsize
+						Precision err2 = abs(P_i[n][j] - P_i_1[n][j-1]);
+
+						//The error is the larger of these.
+						Precision err = max(err1, err2);
+
+						if(err < best_err[n] && isfinite(err))
+						{
+							best_err[n] = err;
+							best_point[n] = P_i[j];
+							better[n]=1;
+						}
+					}
+				
+				using namespace std;
+				//If the highest order point got worse, or went off the rails, 
+				//and some good points have been seen, then break.
+				
+				bool any=0
+				for(int n=0; n < size; n++)
+				{
+					if(ever_ok[n] && !better[n] && i > 0 && (abs(P_i[n][i] - P_i_1[n][i-1]) > t * best_err[n]|| isnan(P_i[n][i])))
+						break;
+					any=1;
+				}
+
+				if(!any)
+					break;
+			}
+
+			return std::make_pair(best_point, best_err);
+		}
+
+		///@internal
+		///@brief Implementation of Ridder's Extrapolation to zero.
+		///The function input starts from 1.
+		///@param f Functor to extrapolate to zero.
+		///@ingroup gInternal
 		template<class F, class Precision> std::pair<Precision, Precision> extrapolate_to_zero(F& f)
 		{
 			using std::isfinite;
@@ -87,11 +226,13 @@ namespace TooN{
 				P_i[0] = f(x);
 
 				x /= c;
-				
+			
+
+
 				//Compute the extrapolations
-				//cj id c^j
+				//cj is c^j
 				Precision cj = 1;
-				bool better=0; //Did we get better?
+				vector<bool> better(size, 0); //Did we get better?
 				bool any_ok=0;
 				for(int j=1; j <= i; j++)
 				{
@@ -129,10 +270,45 @@ namespace TooN{
 				//and some good points have been seen, then break.
 				if(ever_ok && !better && i > 0 && (abs(P_i[i] - P_i_1[i-1]) > t * best_err|| isnan(P_i[i])))
 					break;
+
 			}
 
 			return std::make_pair(best_point, best_err);
 		}
+
+		///@internal
+		///@brief Functor wrapper for computing finite differences along an axis.
+		///@ingroup gInternal
+		template<class Functor, class  Precision, int Size, class Base> struct CentralDifferenceJacobian
+		{
+			const Vector<Size, Precision, Base>& v; ///< Point about which to compute differences
+			Vector<Size, Precision> x;      ///< Local copy of v
+			const Functor&  f;                      ///< Functor to evaluate
+			int i;                                  ///< Index to difference along
+
+			CentralDifferenceGradient(const Vector<Size, Precision, Base>& v_, const Functor& f_)
+			:v(v_),x(v),f(f_),i(0)
+			{}
+			
+			///Compute central difference.
+			Precision operator()(Precision hh) 
+			{
+				using std::max;
+				using std::abs;
+
+				//Make the step size be on the scale of the value.
+				double h = hh * max(abs(v[i]) * 1e-3, 1e-3);
+
+				x[i] = v[i] - h;
+				double f1 = f(x);
+				x[i] = v[i] + h;
+				double f2 = f(x);
+				x[i] = v[i];
+
+				double d =  (f2 - f1) / (2*h);
+				return d;
+			}
+		};
 
 		///@internal
 		///@brief Functor wrapper for computing finite differences along an axis.
@@ -339,6 +515,21 @@ namespace TooN{
 		return grad;
 	}
 	
+	template<class F, int S, class P, class B> Vector<S, P> numerical_jacobian(const F& f, const Vector<S, P, B>& x)
+	{
+		using namespace Internal;
+		Vector<S> grad(x.size());
+
+		CentralDifferenceGradient<F, P, S, B> d(x, f);
+
+		for(int i=0; i < x.size(); i++)
+		{
+			d.i = i;
+			grad[i] = extrapolate_to_zero<CentralDifferenceGradient<F, P, S, B>, P>(d).first;
+		}
+
+		return grad;
+	}
 	///Compute numerical gradients with errors.
 	///See numerical_gradient().
 	///Gradients are returned in the first row of the returned matrix.
