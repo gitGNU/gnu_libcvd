@@ -123,15 +123,15 @@ public:
 	private:
 	void do_compute(){
 		Precision* const a = my_copy.my_data;
-		int lda = my_copy.num_cols();
-		int m = my_copy.num_cols();
-		int n = my_copy.num_rows();
+		TooN::FortranInteger lda = my_copy.num_cols();
+		TooN::FortranInteger m = my_copy.num_cols();
+		TooN::FortranInteger n = my_copy.num_rows();
 		Precision* const uorvt = my_square.my_data;
 		Precision* const s = my_diagonal.my_data;
-		int ldu;
-		int ldvt = lda;
-		int LWORK;
-		int INFO;
+		TooN::FortranInteger ldu;
+		TooN::FortranInteger ldvt = lda;
+		TooN::FortranInteger LWORK;
+		TooN::FortranInteger INFO;
 		char JOBU;
 		char JOBVT;
 
