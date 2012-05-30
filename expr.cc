@@ -235,7 +235,7 @@ Vector<Dynamic, typename ScalarMulExpr<P1,P2,B2>::Precision, ScalarMulExpr<P1,P2
 }
 
 template<class P1, class P2, class B2>
-Vector<Dynamic, typename ScalarDivExpr<P1,P2,B2>::Precision, ScalarDivExpr<P1,P2,B2> > operator*(const Vector<Dynamic, P2, B2>& lhs, const P1& rhs)
+Vector<Dynamic, typename ScalarDivExpr<P1,P2,B2>::Precision, ScalarDivExpr<P1,P2,B2> > operator/(const Vector<Dynamic, P2, B2>& lhs, const P1& rhs)
 {
 	typedef ScalarDivExpr<P1,P2,B2> Expr;
 	typedef typename Expr::Precision Precision;
@@ -246,7 +246,7 @@ Vector<Dynamic, typename ScalarDivExpr<P1,P2,B2>::Precision, ScalarDivExpr<P1,P2
 template<class P1, class B1>
 Vector<Dynamic, P1, NegExpr<P1,B1> > operator-(const Vector<Dynamic, P1, B1>& v)
 {
-	return NegExpr<P1,B1>::template VLayout<Dynamic, P1>(v);
+	return typename NegExpr<P1,B1>::template VLayout<Dynamic, P1>(v);
 }
 
 }
@@ -254,12 +254,12 @@ Vector<Dynamic, P1, NegExpr<P1,B1> > operator-(const Vector<Dynamic, P1, B1>& v)
 
 using namespace TooN;
 using namespace std;
-
+extern "C"{
 void foo(const Vector<>& v1, const Vector<>& v2, Vector<>& v3)
 {
-	v3 = v1 + v2;
+	v3 =-3*(v1+2.4*v2).slice(0,2)/2;
 }
-
+}
 
 
 int main()
