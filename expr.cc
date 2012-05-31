@@ -3,9 +3,11 @@
 using namespace std;
 namespace TooN{
 
+template<class B, class P> struct MakeSlice;
+
 template<class Expr> struct SliceExpr
 {
-	template<int I, class P> struct VLayout
+	template<int I, class P> struct VLayout: public MakeSlice<SliceExpr<Expr>, P>
 	{
 		typedef P Precision;
 		const int start, length;
@@ -30,11 +32,22 @@ template<class Expr> struct SliceExpr
 	};
 };
 
+template<class Base, class Precision = typename Base::Precision> struct MakeSlice
+{
+	Vector<Dynamic, Precision, SliceExpr<Base> > slice(int start, int length)
+	{
+		typedef Vector<Dynamic,  Precision, Base> Derived;
+		const Derived& derived = static_cast<Derived&>(*this);
+
+		return typename SliceExpr<Base>::template VLayout<Dynamic, Precision>(start, length, derived);
+	}
+};
+
 template<class P1, class P2, class B2> struct ScalarMulExpr
 {
 	typedef typename Internal::MultiplyType<P1,P2>::type Precision;
 
-	template<int I, class P> struct VLayout
+	template<int I, class P> struct VLayout: public MakeSlice<ScalarMulExpr<P1, P2, B2> >
 	{
 		typedef typename Internal::MultiplyType<P1,P2>::type Precision;
 		const P1& mul;
@@ -63,7 +76,7 @@ template<class P1, class P2, class B2> struct ScalarDivExpr
 {
 	typedef typename Internal::MultiplyType<P1,P2>::type Precision;
 
-	template<int I, class P> struct VLayout
+	template<int I, class P> struct VLayout: public MakeSlice<ScalarDivExpr<P1, P2, B2> >
 	{
 		typedef typename Internal::MultiplyType<P1,P2>::type Precision;
 		const P1& div;
@@ -92,7 +105,7 @@ template<class P1, class B1> struct NegExpr
 {
 	typedef P1 Precision;
 
-	template<int I, class P> struct VLayout
+	template<int I, class P> struct VLayout: public MakeSlice<NegExpr<P1, B1> >
 	{
 		typedef P1 Precision;
 		const Vector<Dynamic, P1, B1>& vec;
@@ -116,13 +129,15 @@ template<class P1, class B1> struct NegExpr
 	};
 };
 
+
 template<class P1, class P2, class B1, class B2> 
 struct AddExpr
 {
 	typedef typename Internal::AddType<P1,P2>::type Precision;
 	typedef Vector<Dynamic, P1, B1> LHS;
 	typedef Vector<Dynamic, P2, B2> RHS;
-	template<int I,class P> struct VLayout
+
+	template<int I,class P> struct VLayout: public MakeSlice<AddExpr<P1,P2,B1,B2> >
 	{
 		typedef AddExpr<P1,P2,B1,B2>::Precision Precision;
 		typedef void* PointerType;
@@ -146,15 +161,9 @@ struct AddExpr
 			SizeMismatch<Dynamic,Dynamic>:: test(lhs.size(),rhs.size());
 		}
 
-		Vector<Dynamic, Precision, SliceExpr<AddExpr<P1,P2,B1,B2> > > slice(int start, int length)
-		{
-			//We've forgotten which vector we came from.
-			typedef Vector<Dynamic, Precision, AddExpr<P1,P2,B1, B2> > Derived;
-			const Derived& derived = static_cast<Derived&>(*this);
-			return typename SliceExpr<AddExpr<P1,P2,B1,B2> >::template VLayout<Dynamic, Precision>(start, length, derived);
-		}
 	};
 };
+
 
 template<class P1, class P2, class B1, class B2> 
 struct SubExpr
@@ -162,7 +171,7 @@ struct SubExpr
 	typedef typename Internal::SubtractType<P1,P2>::type Precision;
 	typedef Vector<Dynamic, P1, B1> LHS;
 	typedef Vector<Dynamic, P2, B2> RHS;
-	template<int I,class P> struct VLayout
+	template<int I,class P> struct VLayout: public MakeSlice<SubExpr<P1,P2,B1,B2> >
 	{
 		typedef SubExpr<P1,P2,B1,B2>::Precision Precision;
 		typedef void* PointerType;
@@ -186,13 +195,6 @@ struct SubExpr
 			SizeMismatch<Dynamic,Dynamic>:: test(lhs.size(),rhs.size());
 		}
 
-		Vector<Dynamic, Precision, SliceExpr<SubExpr<P1,P2,B1,B2> > > slice(int start, int length)
-		{
-			//We've forgotten which vector we came from.
-			typedef Vector<Dynamic, Precision, SubExpr<P1,P2,B1, B2> > Derived;
-			const Derived& derived = static_cast<Derived&>(*this);
-			return typename SliceExpr<SubExpr<P1,P2,B1,B2> >::template VLayout<Dynamic, Precision>(start, length, derived);
-		}
 	};
 };
 
@@ -255,9 +257,9 @@ Vector<Dynamic, P1, NegExpr<P1,B1> > operator-(const Vector<Dynamic, P1, B1>& v)
 using namespace TooN;
 using namespace std;
 extern "C"{
-void foo(const Vector<>& v1, const Vector<>& v2, Vector<>& v3)
+void foo(const Vector<>& v1, const Vector<>& v2, Vector<>& v3, int i)
 {
-	v3 =-3*(v1+2.4*v2).slice(0,2)/2;
+	v3 =-3*(v1+2.4*v2).slice(0,i)/2;
 }
 }
 
